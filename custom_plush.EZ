@@ -1,0 +1,117 @@
+; Foxonix Embedded Audio Platform
+; Developed by Metre Ideas and Design
+; www.foxonix.com
+
+; Program: Will Sakran
+; Created: 07.30.15
+; Modify and share this program as you wish.
+
+; Program description
+;	Cycles playback of various phrases. When the button is pressed
+;	phrase1 will play. When button is pressed again phrase2 will play.
+;	When pressed again, phrase3 will play, and so on...
+;	If the program is idle for 10 seconds, a callback prompt will play.
+;	If the program is idle for another 10 seconds a "goodbye" phrase
+;	plays and the chip goes to sleep.
+
+; Hardware INPUTS
+	; Pushbutton attached to pin P1.0
+
+
+; Hardware OUTPUTS
+	; Speaker attached to PWM output
+
+
+; Set the device size. A larger device number allows more audio space, but
+; will take longer to upload and program.
+[device]
+SNC21060
+
+
+; Specify the number of pins to be used as inputs
+[key]
+direct=1
+
+
+; List WAV files to be included in the program
+[files]
+youre_my_best_friend_12k.wav
+ill_pick_you_a_flower_sweetie_12k.wav
+lets_play_some_more_12k.wav
+bye_sweety_im_going_on_the_train_12k.wav
+can_i_have_a_hug_please_12k.wav
+hi_my_name_is_love_im_a_unicorn_12k.wav
+
+i_love_you_sweetie_bye_12k.wav
+
+
+; Define the various input states for the program.
+; This describes which pins will have buttons, switches, or
+; other inputs attached to them, and defines when those
+; inputs will be active and inactive.
+[input_states]
+; PIN		P1.0
+locked_out:	x			; locked_out state means no buttons are active
+normal:		button1			; normal state means that button1 will be active on pin P1.0
+
+
+; Define the various output states for the program.
+; Outputs are used to drive LEDs, motor circuits, or any
+; other output device.
+[output_states]
+; No output devices are used in this program (speaker only)
+
+
+; Define the routines (paths) that the program will use.
+; The init path is always called first on power up and reset.
+[paths]
+init:
+	& locked_out		; Disable all inputs during init
+	& freq=12k		; Set the audio playback rate to 12 kHz
+;	& ppdac			; Set the audio output to use the push-pull DAC (PWM)
+	& m0=0			; Initialize memory register m0 to zero
+	& normal		; Enable normal input state - makes button1 active
+	& end			; Stop program and put chip to sleep (low power mode)
+
+button1:
+	& m0:[phrase1 phrase2 phrase3 phrase4 phrase5 phrase6] phrase1	; jump to phrase label based on value of M0
+
+phrase1:
+	& m0=1						; Set m0 equal to 1, to point to next phrase in the list
+	& hi_my_name_is_love_im_a_unicorn_12k.wav	; Play wav file
+	& timeout					; Stop program and put chip to sleep (low power mode)
+
+phrase2:
+	& m0=2						; Set m0 equal to 2, to point to next phrase in the list
+	& youre_my_best_friend_12k.wav			; Play wav file
+	& timeout					; Stop program and put chip to sleep (low power mode)
+
+phrase3:
+	& m0=3				
+	& can_i_have_a_hug_please_12k.wav
+	& timeout				
+
+phrase4:
+	& m0=4					
+	& ill_pick_you_a_flower_sweetie_12k.wav	
+	& timeout
+
+phrase5:
+	& m0=5	
+	& lets_play_some_more_12k.wav
+	& timeout
+
+phrase6:
+	& m0=0						; Set m0 equal to 0 to point to first phrase in the list
+	& bye_sweety_im_going_on_the_train_12k.wav	; Play wav file
+	& timeout					; Stop program and put chip to sleep (low power mode)
+
+
+timeout:
+	& delay(10)
+	& lets_play_some_more_12k.wav			; Play prompt phrase file
+	& delay(10)
+	& i_love_you_sweetie_bye_12k.wav		; Play goodbye phrase
+	& m0=0						; Set m0 equal to 0 to point to first phrase in the list
+	& end						; Stop program and put chip to sleep (low power mode)
+
